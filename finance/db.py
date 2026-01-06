@@ -154,6 +154,28 @@ def get_conn():
     url = st.secrets["DATABASE_URL"]
     return psycopg2.connect(url)
 
+def get_or_create_settings() -> dict:
+    """
+    Ensures required settings exist in the DB (with defaults) and returns settings dict.
+    This preserves compatibility with older code that imports get_or_create_settings().
+    """
+    defaults = {
+        "starting_savings": "0",
+        "expense_categories": "Rent,Groceries,Transport,Utilities,Other",
+        "income_categories": "Salary,Other_income",
+    }
+
+    existing = get_settings()
+
+    # Insert any missing keys
+    for k, v in defaults.items():
+        if k not in existing:
+            upsert_setting(k, v)
+
+    # Return fresh merged settings
+    return get_settings()
+
+
 def init_db():
     with get_conn() as conn:
         with conn.cursor() as cur:

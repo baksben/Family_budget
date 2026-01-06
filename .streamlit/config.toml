@@ -1,0 +1,5 @@
+[theme]
+primaryColor = "#4F46E5"            # soft indigo (buttons, sliders)
+backgroundColor = "#F9FAFB"         # very light gray-white
+secondaryBackgroundColor = "#EEF2FF" # light indigo tint (sidebar, cards)
+textColor = "#111827"               # dark gray (easier on eyes than pure black)

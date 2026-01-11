@@ -10,7 +10,8 @@ st.set_page_config(page_title="Weekly Meal Ideas", page_icon="🥗", layout="wid
 
 load_dotenv()
 
-client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+# client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
 DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 

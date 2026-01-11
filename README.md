@@ -13,3 +13,5 @@ Rent: This includes balashiha rent and electricity bill from balashiha.
 
 ### Expenses
 House: House bills (electricity, water)
+
+https://bakus-family-budget.streamlit.app/Settings

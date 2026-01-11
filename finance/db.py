@@ -175,6 +175,8 @@ def get_or_create_settings() -> dict:
     # Return fresh merged settings
     return get_settings()
 
+def set_setting(key: str, value: str):
+    return upsert_setting(key, value)
 
 def init_db():
     with get_conn() as conn:

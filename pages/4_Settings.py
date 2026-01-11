@@ -1,9 +1,14 @@
 import streamlit as st
-from finance.db import get_settings, set_setting
+# from finance.db import get_settings, set_setting
+from finance.db import init_db, get_or_create_settings, set_setting
+
+init_db()
+settings = get_or_create_settings()
+
 
 st.title("⚙️ Settings")
 
-settings = get_settings()
+# settings = get_settings()
 
 st.subheader("Starting savings")
 starting = st.number_input(

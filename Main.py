@@ -34,5 +34,6 @@ Use the pages in the sidebar:
 - **Dashboard**: see summaries + charts
 - **Forecast**: project savings for future months
 - **Settings**: manage categories + starting savings + passcode
+- **Weekly Meal Ideas**: generate weekly meal plans with recipes
 """
 )

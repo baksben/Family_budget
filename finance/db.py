@@ -204,6 +204,17 @@ def init_db():
                 rub_to_eur DOUBLE PRECISION NOT NULL
             );
             """)
+
+            cur.execute("""
+            CREATE TABLE IF NOT EXISTS weekly_plan (
+                day TEXT PRIMARY KEY,
+                anna_drop_off TEXT NOT NULL DEFAULT '',
+                anna_pick_up  TEXT NOT NULL DEFAULT '',
+                other_plans   TEXT NOT NULL DEFAULT '',
+                updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            );
+            """)
+
         conn.commit()
 
 def get_settings() -> dict:
@@ -261,3 +272,71 @@ def get_fx_rate(month: str):
 def load_all_fx() -> pd.DataFrame:
     with get_conn() as conn:
         return pd.read_sql("SELECT month, rub_to_eur FROM monthly_fx", conn)
+
+######################################################
+# Weekly Plan DB functions
+#####################################################
+
+def load_weekly_plan() -> pd.DataFrame:
+    with get_conn() as conn:
+        df = pd.read_sql("""
+            SELECT
+                day AS "Day",
+                anna_drop_off AS "Anna drop off",
+                anna_pick_up  AS "Anna pick up",
+                other_plans   AS "Other plans"
+            FROM weekly_plan
+            ORDER BY CASE day
+                WHEN 'Monday' THEN 1
+                WHEN 'Tuesday' THEN 2
+                WHEN 'Wednesday' THEN 3
+                WHEN 'Thursday' THEN 4
+                WHEN 'Friday' THEN 5
+                ELSE 99 END;
+        """, conn)
+
+    # If table is empty for some reason, return default
+    if df.empty:
+        return pd.DataFrame({
+            "Day": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+            "Anna drop off": [""] * 5,
+            "Anna pick up": [""] * 5,
+            "Other plans": [""] * 5,
+        })
+
+    return df
+
+
+def upsert_weekly_plan(df: pd.DataFrame) -> None:
+    # df must have columns: Day, Anna drop off, Anna pick up, Other plans
+    with get_conn() as conn:
+        with conn.cursor() as cur:
+            for _, r in df.iterrows():
+                cur.execute("""
+                    INSERT INTO weekly_plan(day, anna_drop_off, anna_pick_up, other_plans, updated_at)
+                    VALUES (%s, %s, %s, %s, NOW())
+                    ON CONFLICT (day) DO UPDATE SET
+                        anna_drop_off = EXCLUDED.anna_drop_off,
+                        anna_pick_up  = EXCLUDED.anna_pick_up,
+                        other_plans   = EXCLUDED.other_plans,
+                        updated_at    = NOW();
+                """, (
+                    r["Day"],
+                    str(r["Anna drop off"] or ""),
+                    str(r["Anna pick up"] or ""),
+                    str(r["Other plans"] or ""),
+                ))
+        conn.commit()
+
+
+def clear_weekly_plan() -> None:
+    with get_conn() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                UPDATE weekly_plan
+                SET anna_drop_off = '',
+                    anna_pick_up  = '',
+                    other_plans   = '',
+                    updated_at    = NOW();
+            """)
+        conn.commit()

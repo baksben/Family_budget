@@ -7,3 +7,4 @@ python-dateutil==2.9.0.post0
 psycopg2-binary
 python-dotenv
 openai==2.15.0
+sqlalchemy

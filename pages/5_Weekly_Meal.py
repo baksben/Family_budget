@@ -7,6 +7,11 @@ import streamlit as st
 from openai import OpenAI
 
 st.set_page_config(page_title="Weekly Meal Ideas", page_icon="🥗", layout="wide")
+from finance.auth import require_login
+
+# Authentification
+require_login()
+
 
 load_dotenv()
 

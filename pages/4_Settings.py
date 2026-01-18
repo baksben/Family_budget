@@ -1,6 +1,11 @@
 import streamlit as st
 # from finance.db import get_settings, set_setting
 from finance.db import init_db, get_or_create_settings, set_setting
+from finance.auth import require_login
+
+# Authentification
+require_login()
+
 
 init_db()
 settings = get_or_create_settings()

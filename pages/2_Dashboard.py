@@ -1,86 +1,13 @@
-# import streamlit as st
-# import pandas as pd
-# import plotly.express as px
-
-# from finance.db import get_settings, load_all_lines
-# from finance.metrics import monthly_summary, category_breakdown
-
-# st.title("📊 Dashboard")
-
-# settings = get_settings()
-# starting_savings = float(settings.get("starting_savings", "0"))
-
-# lines = load_all_lines()
-# summary = monthly_summary(lines, starting_savings)
-# # Warn if any month has salary_moscow but missing fx
-# if not lines.empty:
-#     moscow_months = lines[(lines["line_type"]=="income") & (lines["category"]=="salary_moscow") & (lines["amount"]>0)]["month"].unique().tolist()
-#     if moscow_months:
-#         from finance.db import load_all_fx
-#         fx = load_all_fx()
-#         missing = [m for m in moscow_months if m not in fx["month"].tolist()]
-#         if missing:
-#             st.warning(f"Missing RUB→EUR rate for months: {', '.join(missing)}. Add it in **Add Month** to get correct totals.")
-
-
-# if summary.empty:
-#     st.info("No data yet. Go to **Add Month** and enter your first month.")
-#     st.stop()
-
-# # Summary table
-# st.subheader("Monthly summary")
-# st.dataframe(summary, use_container_width=True)
-
-# # Savings line
-# st.subheader("Savings over time")
-# fig = px.line(summary, x="month", y="savings_end", markers=True)
-# st.plotly_chart(fig, use_container_width=True)
-
-# # Income/Expense bars
-# c1, c2 = st.columns(2)
-# with c1:
-#     st.subheader("Income vs Expense")
-#     melt = summary.melt(id_vars=["month"], value_vars=["total_income", "total_expense"], var_name="type", value_name="amount")
-#     fig2 = px.bar(melt, x="month", y="amount", color="type", barmode="group")
-#     st.plotly_chart(fig2, use_container_width=True)
-
-# with c2:
-#     st.subheader("Net cashflow")
-#     fig3 = px.bar(summary, x="month", y="net")
-#     st.plotly_chart(fig3, use_container_width=True)
-
-# # Category breakdown
-# st.subheader("Category breakdown")
-# tab1, tab2 = st.tabs(["Expenses", "Income"])
-
-# with tab1:
-#     wide_exp = category_breakdown(lines, "expense")
-#     if wide_exp.empty:
-#         st.info("No expenses yet.")
-#     else:
-#         long_exp = wide_exp.melt(id_vars=["month"], var_name="category", value_name="amount")
-#         long_exp = long_exp[long_exp["amount"] > 0]
-#         fig4 = px.bar(long_exp, x="month", y="amount", color="category", barmode="stack")
-#         st.plotly_chart(fig4, use_container_width=True)
-#         st.dataframe(wide_exp, use_container_width=True)
-
-# with tab2:
-#     wide_inc = category_breakdown(lines, "income")
-#     if wide_inc.empty:
-#         st.info("No income yet.")
-#     else:
-#         long_inc = wide_inc.melt(id_vars=["month"], var_name="category", value_name="amount")
-#         long_inc = long_inc[long_inc["amount"] > 0]
-#         fig5 = px.bar(long_inc, x="month", y="amount", color="category", barmode="stack")
-#         st.plotly_chart(fig5, use_container_width=True)
-#         st.dataframe(wide_inc, use_container_width=True)
-
-
 import streamlit as st
 import pandas as pd
 import plotly.express as px
 
 from finance.db import get_settings, load_all_lines, load_all_fx
+from finance.auth import require_login
+
+# Authentification
+require_login()
+
 
 
 # -----------------------------
@@ -127,7 +54,7 @@ def apply_fx_to_lines(lines: pd.DataFrame) -> pd.DataFrame:
 def monthly_summary_eur(lines_eur: pd.DataFrame, starting_savings: float) -> pd.DataFrame:
     """
     Compute monthly totals using amount_eur.
-    IMPORTANT: Uses ONLY line_type == 'expense' (the combined table) to avoid double counting.
+    Uses ONLY line_type == 'expense' (the combined table) to avoid double counting.
     """
     if lines_eur.empty:
         return pd.DataFrame()

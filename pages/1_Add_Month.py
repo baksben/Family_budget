@@ -3,10 +3,15 @@ import pandas as pd
 from finance.db import get_settings, upsert_month_lines, load_month_lines
 from finance.db import get_fx_rate, upsert_fx_rate
 from finance.db import init_db
+from finance.auth import require_login
+
+# Authentification
+require_login()
+
+# Initiate DB
 init_db()
 
-
-
+# Set page title
 st.title("➕ Add Month (Enter totals for previous month)")
 
 settings = get_settings()
@@ -58,25 +63,6 @@ with col1:
         key="inc_editor"
     )
 
-# with col2:
-#     st.subheader("Expenses")
-#     exp_df = make_editor_df(expense_cats, existing, "expense")
-#     exp_edit = st.data_editor(
-#         exp_df,
-#         hide_index=True,
-#         column_config={
-#             "category": st.column_config.TextColumn(disabled=True),
-#             "amount": st.column_config.NumberColumn(step=10.0, format="%.2f"),
-#         },
-#         use_container_width=True,
-#         key="exp_editor"
-#     )
-#     st.caption("Tip: Use negative values only for corrections/refunds (e.g., -150).")
-
-#     neg_exp = (exp_edit["amount"] < 0).any()
-#     if neg_exp:
-#         st.info("You have negative expense entries. These will reduce total expenses (treated as corrections/refunds).")
-
 with col2:
     st.subheader("Expenses")
 
@@ -127,10 +113,6 @@ with col2:
 # Raw totals
 total_income_raw = float(inc_edit["amount"].sum())
 total_expense_eur_raw = float(exp_edit["amount"].sum())
-
-# def is_rub_income_category(cat: str) -> bool:
-#     c = (cat or "").strip().lower()
-#     return ("_moscow" in c or "moscow" in c)  # matches Tatiana_salary_moscow, Ben_salary_moscow, salary_moscow, credit moscow etc.
 
 def is_rub_income_category(cat: str) -> bool:
     return "moscow" in (cat or "").strip().lower()

@@ -63,6 +63,11 @@ import pandas as pd
 
 from finance.db import get_settings, load_all_lines, load_all_fx
 from finance.forecast import forecast_savings
+from finance.auth import require_login
+
+# Authentification
+require_login()
+
 
 
 # -----------------------------

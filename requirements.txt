@@ -8,3 +8,4 @@ psycopg2-binary
 python-dotenv
 openai==2.15.0
 sqlalchemy
+bcrypt

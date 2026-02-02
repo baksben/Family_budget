@@ -2,11 +2,27 @@ import pandas as pd
 import psycopg2
 import streamlit as st
 
+#######################################################
+# General DB functions
+#######################################################
 def get_conn():
-    # You will set this in Streamlit Secrets on the Cloud
-    # Example: postgresql://user:pass@host:5432/db?sslmode=require
     url = st.secrets["DATABASE_URL"]
     return psycopg2.connect(url)
+
+def get_settings() -> dict:
+    with get_conn() as conn:
+        df = pd.read_sql("SELECT key, value FROM settings", conn)
+    return dict(zip(df["key"], df["value"]))
+
+def upsert_setting(key: str, value: str):
+    with get_conn() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                INSERT INTO settings (key, value)
+                VALUES (%s, %s)
+                ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value
+            """, (key, value))
+        conn.commit()
 
 def get_or_create_settings() -> dict:
     """
@@ -79,20 +95,6 @@ def init_db():
 
         conn.commit()
 
-def get_settings() -> dict:
-    with get_conn() as conn:
-        df = pd.read_sql("SELECT key, value FROM settings", conn)
-    return dict(zip(df["key"], df["value"]))
-
-def upsert_setting(key: str, value: str):
-    with get_conn() as conn:
-        with conn.cursor() as cur:
-            cur.execute("""
-                INSERT INTO settings (key, value)
-                VALUES (%s, %s)
-                ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value
-            """, (key, value))
-        conn.commit()
 
 def upsert_month_lines(month: str, line_type: str, lines: list[tuple[str, float]]):
     with get_conn() as conn:
